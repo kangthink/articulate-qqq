@@ -8,6 +8,7 @@ import time
 from pathlib import Path
 
 from . import Config, PID_FILE
+from .ai import PROVIDERS
 from .processor import process_file
 
 
@@ -64,7 +65,8 @@ def watch(target: Path, config: Config):
     signal.signal(signal.SIGINT, _handle_signal)
     signal.signal(signal.SIGTERM, _handle_signal)
 
-    print(f"[aq] Watching: {target} — powered by Claude AI")
+    provider_name = PROVIDERS.get(config.model, {}).get("name", config.model)
+    print(f"[aq] Watching: {target} — powered by {provider_name}")
     print(f"[aq] Pattern: {config.glob_pattern} | Poll: {config.poll_interval}s")
     print(f"[aq] Press Ctrl+C to stop")
 

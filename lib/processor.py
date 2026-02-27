@@ -1,4 +1,4 @@
-"""Core processing pipeline: scan markers, invoke Claude, insert results."""
+"""Core processing pipeline: scan markers, invoke AI, insert results."""
 
 import re
 from dataclasses import dataclass
@@ -7,7 +7,7 @@ from pathlib import Path
 from . import MARKER_EXPAND, MARKER_ANSWER, Config
 from .context import extract_context, extract_heading_context
 from .prompts import build_expand_prompt, build_answer_prompt
-from .claude import call_claude
+from .ai import call_ai, PROVIDERS
 from .formatter import detect_indent, detect_indent_unit, indent_block
 
 # Pattern: optional indent, optional content, then ??? or !!!
@@ -78,7 +78,7 @@ def process_marker(
         print(f"  [dry-run] User: {user[:80]}...")
         return None
 
-    return call_claude(system, user, timeout=config.timeout)
+    return call_ai(system, user, provider=config.model, timeout=config.timeout)
 
 
 def process_file(filepath: Path, config: Config) -> int:
@@ -102,7 +102,8 @@ def process_file(filepath: Path, config: Config) -> int:
         return 0
 
     marker_label = lambda h: "???" if h.marker_type == MARKER_EXPAND else "!!!"
-    print(f"[aq] {filepath.name}: {len(hits)} marker(s) found — powered by Claude AI")
+    provider_name = PROVIDERS.get(config.model, {}).get("name", config.model)
+    print(f"[aq] {filepath.name}: {len(hits)} marker(s) found — powered by {provider_name}")
 
     indent_unit = detect_indent_unit(lines)
     processed = 0

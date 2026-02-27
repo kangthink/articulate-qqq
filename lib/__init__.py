@@ -27,3 +27,4 @@ class Config:
     glob_pattern: str = DEFAULT_GLOB
     timeout: int = DEFAULT_TIMEOUT
     structure: bool = False
+    model: str = "claude"

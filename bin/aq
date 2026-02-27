@@ -59,6 +59,7 @@ def main():
     parser.add_argument("--glob", type=str, default="*.md", help="File pattern for watch mode (default: *.md)")
     parser.add_argument("--timeout", type=int, default=120, help="Claude CLI timeout in seconds (default: 120)")
     parser.add_argument("--structure", action="store_true", help="Use structured 3-axis questions for ??? (default: free-form)")
+    parser.add_argument("--model", type=str, default="claude", choices=["claude", "gemini", "codex"], help="AI provider (default: claude)")
 
     sub = parser.add_subparsers(dest="command")
 
@@ -87,6 +88,7 @@ def main():
         glob_pattern=args.glob,
         timeout=args.timeout,
         structure=args.structure,
+        model=args.model,
     )
 
     commands = {

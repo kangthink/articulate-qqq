@@ -102,7 +102,7 @@ def process_file(filepath: Path, config: Config) -> int:
         return 0
 
     marker_label = lambda h: "???" if h.marker_type == MARKER_EXPAND else "!!!"
-    print(f"[aq] {filepath.name}: {len(hits)} marker(s) found")
+    print(f"[aq] {filepath.name}: {len(hits)} marker(s) found — powered by Claude AI")
 
     indent_unit = detect_indent_unit(lines)
     processed = 0

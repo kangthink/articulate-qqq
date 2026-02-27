@@ -64,9 +64,8 @@ def watch(target: Path, config: Config):
     signal.signal(signal.SIGINT, _handle_signal)
     signal.signal(signal.SIGTERM, _handle_signal)
 
-    print(f"[aq] Watching: {target}")
-    print(f"[aq] Pattern: {config.glob_pattern}")
-    print(f"[aq] Poll interval: {config.poll_interval}s")
+    print(f"[aq] Watching: {target} — powered by Claude AI")
+    print(f"[aq] Pattern: {config.glob_pattern} | Poll: {config.poll_interval}s")
     print(f"[aq] Press Ctrl+C to stop")
 
     try:

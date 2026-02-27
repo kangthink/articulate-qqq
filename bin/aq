@@ -2,6 +2,7 @@
 """articulate-qqq (aq): AI thought expansion via ??? and !!! markers."""
 
 import argparse
+import subprocess
 import sys
 from pathlib import Path
 
@@ -44,6 +45,38 @@ def cmd_stop(args, config: Config):
     stop_watcher()
 
 
+def cmd_update(args, config: Config):
+    """Update aq to the latest version via git pull."""
+    repo_dir = _root
+    git_dir = repo_dir / ".git"
+
+    if not git_dir.exists():
+        print(f"[aq] Not a git repo: {repo_dir}")
+        print(f"[aq] Reinstall: curl -fsSL https://raw.githubusercontent.com/kangthink/articulate-qqq/main/install.sh | bash")
+        sys.exit(1)
+
+    print(f"[aq] Updating from {repo_dir}...")
+    result = subprocess.run(
+        ["git", "pull", "--ff-only"],
+        cwd=repo_dir,
+        capture_output=True,
+        text=True,
+    )
+
+    if result.returncode != 0:
+        print(f"[aq] Update failed: {result.stderr.strip()}")
+        sys.exit(1)
+
+    output = result.stdout.strip()
+    # git pull says "Already up to date" (en) or similar in other locales
+    # If no files changed, it's up to date
+    if "Already" in output or "already" in output or "업데이트" in output:
+        print(f"[aq] Already up to date (v{VERSION})")
+    else:
+        print(output)
+        print(f"[aq] Updated. Restart aq to use the new version.")
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="aq",
@@ -74,6 +107,9 @@ def main():
     # stop
     sub.add_parser("stop", help="Stop the running watcher")
 
+    # update
+    sub.add_parser("update", help="Update aq to the latest version")
+
     args = parser.parse_args()
 
     if not args.command:
@@ -95,6 +131,7 @@ def main():
         "run": cmd_run,
         "watch": cmd_watch,
         "stop": cmd_stop,
+        "update": cmd_update,
     }
 
     commands[args.command](args, config)

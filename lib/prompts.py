@@ -1,6 +1,16 @@
 """Prompt templates for ??? (elaboration) and !!! (answer) markers."""
 
-SYSTEM_EXPAND = """\
+SYSTEM_EXPAND_FREE = """\
+You are a thought-expanding assistant. Generate 3 to 5 insightful questions that deepen understanding of the given concept.
+Ask from diverse angles: assumptions, edge cases, tradeoffs, real-world applications, misconceptions, analogies, or implications.
+
+Rules:
+- Each line starts with -
+- Match the input language
+- No preamble, no summary, no explanation
+"""
+
+SYSTEM_EXPAND_STRUCTURED = """\
 You are a thought-structuring assistant. Generate exactly 3 questions that decompose the given concept along 3 axes:
 1. [Distinction] How does it differ from similar concepts?
 2. [Structure] What are its internal components and stages?
@@ -28,13 +38,17 @@ def build_expand_prompt(
     heading_context: str = "",
     lang: str | None = None,
     custom: str | None = None,
+    structure: bool = False,
 ) -> tuple[str, str]:
     """Build system + user prompts for ??? marker.
+
+    Args:
+        structure: If True, use 3-axis structured format. Otherwise free-form.
 
     Returns:
         (system_prompt, user_prompt)
     """
-    system = SYSTEM_EXPAND
+    system = SYSTEM_EXPAND_STRUCTURED if structure else SYSTEM_EXPAND_FREE
     if lang:
         system += f"\nRespond in {lang}."
     if custom:

@@ -58,6 +58,7 @@ def main():
     parser.add_argument("--poll-interval", type=float, default=1.0, help="Polling interval in seconds (default: 1)")
     parser.add_argument("--glob", type=str, default="*.md", help="File pattern for watch mode (default: *.md)")
     parser.add_argument("--timeout", type=int, default=120, help="Claude CLI timeout in seconds (default: 120)")
+    parser.add_argument("--structure", action="store_true", help="Use structured 3-axis questions for ??? (default: free-form)")
 
     sub = parser.add_subparsers(dest="command")
 
@@ -85,6 +86,7 @@ def main():
         poll_interval=args.poll_interval,
         glob_pattern=args.glob,
         timeout=args.timeout,
+        structure=args.structure,
     )
 
     commands = {

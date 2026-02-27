@@ -60,6 +60,7 @@ def process_marker(
             heading_context=heading_ctx,
             lang=config.lang,
             custom=config.custom_prompt,
+            structure=config.structure,
         )
     else:
         system, user = build_answer_prompt(

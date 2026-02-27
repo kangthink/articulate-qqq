@@ -26,3 +26,4 @@ class Config:
     poll_interval: float = DEFAULT_POLL_INTERVAL
     glob_pattern: str = DEFAULT_GLOB
     timeout: int = DEFAULT_TIMEOUT
+    structure: bool = False

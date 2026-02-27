@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+"""articulate-qqq (aq): AI thought expansion via ??? and !!! markers."""
+
+import argparse
+import sys
+from pathlib import Path
+
+# Add lib to path
+_root = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_root))
+
+from lib import VERSION, Config
+from lib.processor import process_file
+from lib.watcher import watch, stop_watcher
+
+
+def cmd_run(args, config: Config):
+    """Process markers in a file once."""
+    target = Path(args.target).resolve()
+    if not target.exists():
+        print(f"[aq] File not found: {target}")
+        sys.exit(1)
+    if not target.is_file():
+        print(f"[aq] Not a file: {target}")
+        sys.exit(1)
+
+    count = process_file(target, config)
+    if count == 0:
+        print(f"[aq] No markers found in {target.name}")
+
+
+def cmd_watch(args, config: Config):
+    """Watch a file or directory for marker changes."""
+    target = Path(args.target).resolve()
+    if not target.exists():
+        print(f"[aq] Path not found: {target}")
+        sys.exit(1)
+
+    watch(target, config)
+
+
+def cmd_stop(args, config: Config):
+    """Stop a running watcher."""
+    stop_watcher()
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        prog="aq",
+        description="articulate-qqq: AI thought expansion via ??? and !!! markers",
+    )
+    parser.add_argument("--version", action="version", version=f"aq {VERSION}")
+
+    # Global options
+    parser.add_argument("--dry-run", action="store_true", help="Preview without modifying files")
+    parser.add_argument("--lang", type=str, default=None, help="Force response language (ko, en, ...)")
+    parser.add_argument("--prompt", type=str, default=None, help="Custom instruction to append")
+    parser.add_argument("--poll-interval", type=float, default=1.0, help="Polling interval in seconds (default: 1)")
+    parser.add_argument("--glob", type=str, default="*.md", help="File pattern for watch mode (default: *.md)")
+    parser.add_argument("--timeout", type=int, default=120, help="Claude CLI timeout in seconds (default: 120)")
+
+    sub = parser.add_subparsers(dest="command")
+
+    # run
+    p_run = sub.add_parser("run", help="Process markers in a file once")
+    p_run.add_argument("target", help="File to process")
+
+    # watch
+    p_watch = sub.add_parser("watch", help="Watch file/directory for changes")
+    p_watch.add_argument("target", help="File or directory to watch")
+
+    # stop
+    sub.add_parser("stop", help="Stop the running watcher")
+
+    args = parser.parse_args()
+
+    if not args.command:
+        parser.print_help()
+        sys.exit(1)
+
+    config = Config(
+        dry_run=args.dry_run,
+        lang=args.lang,
+        custom_prompt=args.prompt,
+        poll_interval=args.poll_interval,
+        glob_pattern=args.glob,
+        timeout=args.timeout,
+    )
+
+    commands = {
+        "run": cmd_run,
+        "watch": cmd_watch,
+        "stop": cmd_stop,
+    }
+
+    commands[args.command](args, config)
+
+
+if __name__ == "__main__":
+    main()

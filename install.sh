@@ -2,8 +2,9 @@
 set -euo pipefail
 
 APP_NAME="aq"
+REPO_URL="https://github.com/kangthink/articulate-qqq.git"
+APP_DIR="$HOME/.local/share/articulate-qqq"
 INSTALL_DIR="$HOME/.local/bin"
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 echo "=== articulate-qqq ($APP_NAME) installer ==="
 
@@ -30,16 +31,35 @@ if ! command -v claude &>/dev/null; then
     echo ""
 fi
 
-# 4. Create install directory
+# 4. Determine source: curl install vs local install
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd)" || SCRIPT_DIR=""
+
+if [[ -n "$SCRIPT_DIR" && -f "$SCRIPT_DIR/bin/$APP_NAME" ]]; then
+    # Local install — use repo in place
+    APP_DIR="$SCRIPT_DIR"
+    echo "Local install: $APP_DIR"
+else
+    # Remote install — clone repo
+    if ! command -v git &>/dev/null; then
+        echo "Error: git not found."
+        exit 1
+    fi
+
+    if [[ -d "$APP_DIR/.git" ]]; then
+        echo "Updating existing install..."
+        git -C "$APP_DIR" pull --ff-only
+    else
+        rm -rf "$APP_DIR"
+        echo "Cloning repository..."
+        git clone --depth 1 "$REPO_URL" "$APP_DIR"
+    fi
+fi
+
+# 5. Create install directory and symlink
 mkdir -p "$INSTALL_DIR"
 
-# 5. Create symlink
-SOURCE="$SCRIPT_DIR/bin/$APP_NAME"
+SOURCE="$APP_DIR/bin/$APP_NAME"
 TARGET="$INSTALL_DIR/$APP_NAME"
-
-if [[ -L "$TARGET" || -f "$TARGET" ]]; then
-    rm -f "$TARGET"
-fi
 
 chmod +x "$SOURCE"
 ln -sf "$SOURCE" "$TARGET"
@@ -55,11 +75,13 @@ if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
     fi
 
     if [[ -n "$SHELL_RC" ]]; then
-        echo "" >> "$SHELL_RC"
-        echo "# articulate-qqq" >> "$SHELL_RC"
-        echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$SHELL_RC"
-        echo "Added ~/.local/bin to PATH in $SHELL_RC"
-        echo "Run: source $SHELL_RC"
+        if ! grep -q "articulate-qqq" "$SHELL_RC" 2>/dev/null; then
+            echo "" >> "$SHELL_RC"
+            echo "# articulate-qqq" >> "$SHELL_RC"
+            echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$SHELL_RC"
+            echo "Added ~/.local/bin to PATH in $SHELL_RC"
+            echo "Run: source $SHELL_RC"
+        fi
     else
         echo "Add to your shell config: export PATH=\"\$HOME/.local/bin:\$PATH\""
     fi
